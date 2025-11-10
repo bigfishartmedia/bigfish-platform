@@ -1,47 +1,105 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>My Video Site</title>
-  </head>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script>
-  const supabaseUrl = 'https://cfrugjbukksemenwwxvh.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmcnVnamJ1a2tzZW1lbnd3eHZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3MzYwNjcsImV4cCI6MjA3ODMxMjA2N30.S54bau75LDRn-XOBxq6YnQdQQsqzitJzIw2y-HkHy-g';
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <title>My Video Site</title>
+</head>
+<body>
+  <h1>خوش آمدید به سایت ویدیو من!</h1>
 
-  const form = document.getElementById('auth-form');
-  const message = document.getElementById('auth-message');
+  <!-- فرم ثبت‌نام / ورود -->
+  <h2>ثبت‌نام / ورود</h2>
+  <form id="auth-form">
+    <input type="email" id="email" placeholder="ایمیل" required>
+    <input type="password" id="password" placeholder="رمز عبور" required>
+    <button type="submit">ثبت‌نام / ورود</button>
+  </form>
+  <div id="auth-message"></div>
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+  <!-- فرم آپلود ویدیو -->
+  <h2>آپلود ویدیو</h2>
+  <form id="upload-form">
+    <input type="file" id="video-file" accept="video/*" required>
+    <select id="video-type">
+      <option value="free">رایگان</option>
+      <option value="paid">پولی</option>
+    </select>
+    <button type="submit">آپلود</button>
+  </form>
+  <div id="upload-message"></div>
 
-    // ثبت‌نام یا ورود
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) {
-      // اگر ثبت‌نام نشد، تلاش برای ورود
-      const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
-      if (loginError) {
-        message.textContent = loginError.message;
+  <!-- اضافه کردن Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+    // ===========================
+    // جایگزین کن با اطلاعات خودت
+    const supabaseUrl = 'https://cfrugjbukksemenwwxvh.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmcnVnamJ1a2tzZW1lbnd3eHZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3MzYwNjcsImV4cCI6MjA3ODMxMjA2N30.S54bau75LDRn-XOBxq6YnQdQQsqzitJzIw2y-HkHy-g';
+    // ===========================
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // فرم ثبت‌نام / ورود
+    const form = document.getElementById('auth-form');
+    const message = document.getElementById('auth-message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      // تلاش برای ثبت‌نام
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        // اگر ثبت‌نام نشد، تلاش برای ورود
+        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+        if (loginError) {
+          message.textContent = loginError.message;
+        } else {
+          message.textContent = 'ورود موفق!';
+        }
       } else {
-        message.textContent = 'ورود موفق!';
+        message.textContent = 'ثبت‌نام موفق! ایمیل خود را بررسی کنید.';
       }
-    } else {
-      message.textContent = 'ثبت‌نام موفق! ایمیل خود را بررسی کنید.';
-    }
-  });
-</script>
-  <body>
-    <h1>خوش آمدید به سایت من</h1>
-    <p>بزودی ویدیوها اضافه خواهند شد!</p>
-  </body><h2>ثبت‌نام / ورود</h2>
-<form id="auth-form">
-  <input type="email" id="email" placeholder="ایمیل" required>
-  <input type="password" id="password" placeholder="رمز عبور" required>
-  <button type="submit">ثبت‌نام / ورود</button>
-</form>
-<div id="auth-message"></div>
+    });
 
+    // فرم آپلود ویدیو
+    const uploadForm = document.getElementById('upload-form');
+    const uploadMessage = document.getElementById('upload-message');
+
+    uploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fileInput = document.getElementById('video-file');
+      const videoType = document.getElementById('video-type').value;
+      const file = fileInput.files[0];
+
+      if (!file) {
+        uploadMessage.textContent = 'لطفاً یک ویدیو انتخاب کنید.';
+        return;
+      }
+
+      const fileName = `${Date.now()}_${file.name}`;
+
+      // آپلود به Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('videos') // نام bucket ساخته شده
+        .upload(fileName, file);
+
+      if (error) {
+        uploadMessage.textContent = 'خطا در آپلود: ' + error.message;
+        return;
+      }
+
+      // ذخیره اطلاعات ویدیو در جدول videos
+      const { error: dbError } = await supabase
+        .from('videos')
+        .insert([{ name: fileName, type: videoType, uploaded_at: new Date() }]);
+
+      if (dbError) {
+        uploadMessage.textContent = 'خطا در ذخیره اطلاعات ویدیو: ' + dbError.message;
+      } else {
+        uploadMessage.textContent = 'آپلود موفق!';
+      }
+    });
+  </script>
+</body>
 </html>

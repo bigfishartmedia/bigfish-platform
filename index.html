@@ -4,8 +4,44 @@
     <meta charset="UTF-8">
     <title>My Video Site</title>
   </head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+  const supabaseUrl = 'YOUR_PROJECT_URL';
+  const supabaseKey = 'YOUR_ANON_PUBLIC_API_KEY';
+  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+  const form = document.getElementById('auth-form');
+  const message = document.getElementById('auth-message');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    // ثبت‌نام یا ورود
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      // اگر ثبت‌نام نشد، تلاش برای ورود
+      const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+      if (loginError) {
+        message.textContent = loginError.message;
+      } else {
+        message.textContent = 'ورود موفق!';
+      }
+    } else {
+      message.textContent = 'ثبت‌نام موفق! ایمیل خود را بررسی کنید.';
+    }
+  });
+</script>
   <body>
     <h1>خوش آمدید به سایت من</h1>
     <p>بزودی ویدیوها اضافه خواهند شد!</p>
-  </body>
+  </body><h2>ثبت‌نام / ورود</h2>
+<form id="auth-form">
+  <input type="email" id="email" placeholder="ایمیل" required>
+  <input type="password" id="password" placeholder="رمز عبور" required>
+  <button type="submit">ثبت‌نام / ورود</button>
+</form>
+<div id="auth-message"></div>
+
 </html>
